@@ -1,0 +1,116 @@
+
+    private EditText p_email_name,p_email_email,p_email_password;
+    private Button p_email_signup,p_email_login;
+    private FirebaseAuth firebaseAuth;
+    private int REQUEST_CODE=1;
+
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_main);
+
+
+        setupUIViews();
+        firebaseAuth = FirebaseAuth.getInstance();
+
+        p_email_signup.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this, login_doctor.class));
+
+            }
+        });
+
+        p_email_login.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+
+
+
+                String getName = p_email_name.getText().toString();
+                String getEmailId = p_email_email.getText().toString();
+                String getPassword = p_email_password.getText().toString();
+
+                // Check for both field is empty or not
+                if ((getName.equals("") || getName.length() == 0 || getEmailId.equals("") || getEmailId.length() == 0 || getPassword.equals("") || getPassword.length() == 0))
+                {
+
+                    Toast.makeText(MainActivity.this, "Enter Correcct credentials.", Toast.LENGTH_SHORT).show();
+
+                }
+                else
+                {
+                    Toast.makeText(MainActivity.this, "Please Wait ...!!!", Toast.LENGTH_LONG).show();
+                    String User_email = p_email_email.getText().toString().trim();
+                    String User_password = p_email_password.getText().toString().trim();
+                    firebaseAuth.createUserWithEmailAndPassword(User_email, User_password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                        @Override
+                        public void onComplete(@NonNull Task<AuthResult> task) {
+
+                            if (task.isSuccessful()) {
+
+                                sendEmailVerification();
+
+                            } else {
+                                Toast.makeText(MainActivity.this, "fail...!!!", Toast.LENGTH_LONG).show();
+
+                            }
+
+
+                        }
+                    });
+                }
+
+
+
+            }
+        });
+
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+
+
+    }
+    private void setupUIViews()
+    {
+        p_email_name=(EditText)findViewById(R.id.p_email_name);
+        p_email_email=(EditText)findViewById(R.id.p_email_email);
+        p_email_password=(EditText)findViewById(R.id.p_email_password);
+        p_email_login=(Button)findViewById(R.id.p_email_login);
+        p_email_signup=(Button)findViewById(R.id.p_email_signup);
+
+
+    }
+
+    private void sendEmailVerification()
+    {
+        FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
+        if(firebaseUser!=null)
+        {
+            firebaseUser.sendEmailVerification().addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if(task.isSuccessful())
+                    {
+
+                        Toast.makeText(MainActivity.this," Go to Email & Verify your Mail ID.. ",Toast.LENGTH_SHORT).show();
+                        firebaseAuth.signOut();
+                        finish();
+                        startActivity(new Intent(MainActivity.this,login_doctor.class));
+                    }
+                    else
+                    {
+                        Toast.makeText(MainActivity.this," Verify Code Sending Failed..!!! please Try Again..!!!",Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
+    }
